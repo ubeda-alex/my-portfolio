@@ -699,6 +699,12 @@ document.documentElement.classList.add('js');
           b.classList.toggle('is-beat', index === beat);
         });
 
+        const mark = document.querySelector('.sub-music');
+        if (mark && (beat === 0 || beat === 2 || beat === 4 || beat === 6)) {
+          mark.classList.add('is-beat');
+          setTimeout(() => mark.classList.remove('is-beat'), 90);
+        }
+
       }, (t - ctx.currentTime) * 1000);
 
     }
@@ -729,13 +735,80 @@ document.documentElement.classList.add('js');
      ↑ ↑ ↓ ↓ ← → ← → B A
   ========================= */
 
+  // Lluvia de la marca: asteriscos y submarcas, cada una con su animación
+  const RAIN = [
+    { k: 'au',    light: '#244B3B', dark: '#D7F486' },
+    { k: 'films', light: '#D9573F', dark: '#FF8A6B' },
+    { k: 'music', light: '#6E9A1F', dark: '#D7F486' },
+    { k: 'dev',   light: '#C2417F', dark: '#E25C9B' },
+  ];
+  let rain = null, rainTimer = null;
+
+  const starSVG = () => {
+    let lines = '';
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      lines += `<line style="--i:${i}" pathLength="1" x1="0" y1="0" x2="${(Math.sin(a) * 115).toFixed(1)}" y2="${(-Math.cos(a) * 115).toFixed(1)}"/>`;
+    }
+    return `<svg viewBox="-140 -140 280 280"><g class="ast" stroke-width="50" stroke-linecap="round" fill="none">${lines}</g></svg>`;
+  };
+
+  const lockupSVG = (k) => {
+    const src = k === 'au' ? document.querySelector('.brand-logo') : document.querySelector(`.sub-${k}`);
+    if (!src) return null;
+    const svg = src.cloneNode(true);
+    svg.removeAttribute('class'); svg.removeAttribute('style');
+    svg.removeAttribute('role'); svg.removeAttribute('aria-label');
+    return svg.outerHTML;
+  };
+
+  const drop = () => {
+    if (!rain || rain.childElementCount > 46) return;
+    const t = RAIN[Math.floor(Math.random() * RAIN.length)];
+    const lockup = Math.random() < .28;
+    const html = lockup ? lockupSVG(t.k) : starSVG();
+    if (!html) return;
+    const el = document.createElement('div');
+    el.className = 'au-drop';
+    el.dataset.k = t.k;
+    const dark = root.dataset.theme === 'dark';
+    const dur = 3.6 + Math.random() * 3.2;
+    el.style.cssText =
+      `left:${Math.random() * 96}vw;--dur:${dur}s;--c:${dark ? t.dark : t.light};` +
+      `--size:${lockup ? 16 + Math.random() * 12 : 16 + Math.random() * 30}px;` +
+      `--drift:${(Math.random() - .5) * 160}px;` +
+      `--r0:${lockup ? (Math.random() - .5) * 20 : Math.random() * 90}deg;` +
+      `--r1:${lockup ? (Math.random() - .5) * 30 : 90 + Math.random() * 180}deg`;
+    el.innerHTML = html;
+    el.addEventListener('animationend', (e) => { if (e.target === el) el.remove(); });
+    rain.appendChild(el);
+  };
+
+  const startRain = () => {
+    if (reduced || rain) return;
+    rain = document.createElement('div');
+    rain.className = 'au-rain';
+    rain.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(rain);
+    for (let i = 0; i < 26; i++) setTimeout(drop, i * 55);   // ráfaga inicial
+    rainTimer = setInterval(drop, 300);
+  };
+
+  const stopRain = () => {
+    clearInterval(rainTimer); rainTimer = null;
+    if (!rain) return;
+    const r = rain; rain = null;
+    r.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, fill: 'forwards' });
+    setTimeout(() => r.remove(), 650);
+  };
+
   const toggleParty = () => {
 
     const on = root.classList.toggle('party');
 
-    toast(on ? '✳︎ Modo fiesta activado' : 'Modo fiesta desactivado');
+    toast(on ? '✳︎ Modo fiesta · siempre hay algo más' : 'Modo fiesta desactivado');
 
-    if (on) playRhythm();
+    if (on) { playRhythm(); startRain(); } else { stopRain(); }
 
   };
 
@@ -1278,5 +1351,56 @@ document.documentElement.classList.add('js');
     'font: 600 16px sans-serif; color: #244b3b;',
     'font: 13px sans-serif; color: #666a61;'
   );
+
+
+
+  /* =========================
+     MARCA au*
+  ========================= */
+
+  // "Tic" del asterisco en el encabezado: 45° (vuelve a su misma forma)
+  const brand = document.querySelector('.brand');
+  const brandStar = brand && brand.querySelector('.brand-logo .ast');
+  let brandTurn = 0;
+  if (brand && brandStar && !reduced) {
+    brand.addEventListener('mouseenter', () => {
+      brandTurn += 45;
+      brandStar.style.transform = `rotate(${brandTurn}deg)`;
+    });
+  }
+
+  // Entrada del logo: se dibuja y viaja hasta el encabezado
+  const intro = document.querySelector('.au-intro');
+  if (intro && root.classList.contains('au-intro-on')) {
+    const finish = () => {
+      root.classList.remove('au-intro-on');
+      intro.remove();
+      try { localStorage.setItem('au-intro', '1'); } catch (e) {}
+    };
+    const fly = () => {
+      if (!intro.isConnected) return;
+      const from = intro.querySelector('.au-intro-logo').getBoundingClientRect();
+      const target = document.querySelector('.brand-logo');
+      const to = target ? target.getBoundingClientRect() : null;
+      if (!to || !to.width || !intro.animate) return finish();
+      const s = to.width / from.width;
+      const dx = to.left - from.left, dy = to.top - from.top;
+      const logo = intro.querySelector('.au-intro-logo');
+      logo.style.transformOrigin = '0 0';
+      const move = logo.animate(
+        [{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(${s})` }],
+        { duration: 560, easing: 'cubic-bezier(.65, 0, .35, 1)', fill: 'forwards' }
+      );
+      intro.animate(
+        [{ backgroundColor: getComputedStyle(intro).backgroundColor }, { backgroundColor: 'transparent' }],
+        { duration: 460, easing: 'ease-out', fill: 'forwards' }
+      );
+      move.onfinish = finish;   // termina cuando el logo aterriza en el encabezado
+    };
+    const timer = setTimeout(fly, 1050);
+    const skip = () => { clearTimeout(timer); finish(); };
+    intro.addEventListener('click', skip);
+    window.addEventListener('keydown', skip, { once: true });
+  }
 
 })();
