@@ -376,27 +376,30 @@ a:focus-visible {
 
 
 .brand {
-  font-family: var(--display);
+  display: inline-flex;
+  align-items: center;
 
-  font-weight: 700;
   font-size: 36px;
 
-  letter-spacing: -4px;
-
   line-height: 1;
+
+  color: var(--ink);
 }
 
 
-.brand span {
-  font-size: 12px;
+/* Logo au* dibujado (assets/brand). Mide en em para heredar los tamaños responsive. */
+.brand-logo {
+  display: block;
 
-  letter-spacing: 0;
+  height: .74em;
+  width: auto;
 
-  vertical-align: top;
+  overflow: visible;
+}
 
-  padding-left: 6px;
 
-  color: var(--green);
+[data-theme="dark"] .brand {
+  color: var(--fg);
 }
 
 
@@ -5040,4 +5043,306 @@ kbd {
     font-size: 80px;
   }
 
+}
+
+
+/* =========================
+   MARCA au* · animaciones
+========================= */
+
+.brand-logo .ast,
+.au-intro-logo .ast,
+.footer-mark .ast {
+  stroke: var(--green);
+}
+
+.brand-logo .ast {
+  transition: transform .7s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Submarcas en las tarjetas */
+.card-mark {
+  display: inline-flex;
+}
+
+.sub-logo {
+  display: block;
+
+  height: 15px;
+  width: auto;
+
+  overflow: visible;
+}
+
+.sub-dev .ast   { stroke: #C2417F; }
+.sub-films .ast { stroke: #FF8A6B; }   /* coral de films, aclarado para fondo oscuro */
+.sub-music .ast { stroke: #D7F486; }   /* lima: el verde de music no se lee sobre fondo oscuro */
+
+.sub-dev .caret {
+  fill: #C2417F;
+
+  opacity: 0;
+}
+
+.sub-logo .ast {
+  transition: transform .09s ease-out;
+}
+
+.sub-music.is-beat .ast {
+  transform: scale(1.28);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* dev: el asterisco estalla y el cursor parpadea */
+  .code-card:hover .sub-dev .ast {
+    animation: au-burst .55s cubic-bezier(.34, 1.56, .64, 1);
+  }
+
+  .code-card:hover .sub-dev .caret {
+    animation: au-blink 1.06s steps(1) .45s infinite;
+  }
+
+  /* films: gira como un rollo y frena */
+  .audio-card:hover .sub-films .ast {
+    animation: au-reel 1.4s cubic-bezier(.1, .75, .2, 1);
+  }
+
+  /* music: un brazo por corchea */
+  .music-card:hover .sub-music .ast line {
+    animation: au-arm .22s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: calc(var(--i) * .1s);
+  }
+}
+
+@keyframes au-burst {
+  from { transform: scale(0) rotate(-45deg); }
+  to   { transform: scale(1) rotate(0); }
+}
+
+@keyframes au-reel {
+  from { transform: rotate(-720deg); }
+  to   { transform: rotate(0); }
+}
+
+@keyframes au-arm {
+  from { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  to   { stroke-dasharray: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes au-blink {
+  0%  { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Entrada (primera visita) */
+.au-intro {
+  display: none;
+}
+
+.au-intro-on .au-intro {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: grid;
+
+  place-items: center;
+
+  background: var(--paper);
+
+  color: var(--ink);
+
+  cursor: pointer;
+
+  animation: au-intro-safety .4s 2.6s forwards;   /* por si el script no corre */
+}
+
+[data-theme="dark"].au-intro-on .au-intro {
+  background: var(--bg);
+
+  color: var(--fg);
+}
+
+.au-intro-logo {
+  width: min(46vw, 420px);
+  height: auto;
+
+  overflow: visible;
+}
+
+.au-intro-on .brand-logo {
+  visibility: hidden;
+}
+
+.au-intro-logo .ast {
+  animation: au-intro-spin .8s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.au-intro-logo .ast line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+
+  animation: au-draw .38s cubic-bezier(.16, 1, .3, 1) forwards;
+  animation-delay: calc(.06s + var(--i) * .045s);
+}
+
+.au-intro-logo .g {
+  transform: translateY(780px);
+
+  animation: au-rise .62s cubic-bezier(.16, 1, .3, 1) .36s forwards;
+}
+
+.au-intro-logo .g1 {
+  animation-delay: .43s;
+}
+
+@keyframes au-draw      { to { stroke-dashoffset: 0; } }
+@keyframes au-rise      { to { transform: translateY(0); } }
+@keyframes au-intro-spin { from { transform: rotate(-90deg); } }
+@keyframes au-intro-safety { to { opacity: 0; visibility: hidden; } }
+
+/* Firma en el pie de página: mayúsculas del nombre = altura de "au" */
+.footer-firma {
+  display: inline-flex;
+
+  align-items: baseline;
+}
+
+.footer-mark {
+  height: .99em;
+  width: auto;
+
+  align-self: flex-end;
+
+  margin-bottom: .2em;
+
+  overflow: visible;
+
+  flex: none;
+}
+
+.footer-rule {
+  display: inline-block;
+
+  width: max(1px, .013em);
+  height: .93em;
+
+  margin: 0 .21em;
+
+  background: var(--line);
+
+  align-self: center;
+}
+
+
+
+/* =========================
+   MODO FIESTA · marca au*
+========================= */
+
+.party .blob {
+  opacity: 1;
+
+  animation: au-party-hue 3s linear infinite;
+}
+
+[data-theme="dark"].party .blob {
+  opacity: .5;
+}
+
+@keyframes au-party-hue {
+  from { filter: blur(44px) saturate(1.8) hue-rotate(0deg); }
+  to   { filter: blur(44px) saturate(1.8) hue-rotate(360deg); }
+}
+
+/* el asterisco del logo y de las submarcas late a 112 bpm (negras) */
+.party .brand-logo .ast,
+.party .sub-logo .ast {
+  animation: au-pulse .536s cubic-bezier(.2, .8, .3, 1) infinite;
+}
+
+@keyframes au-pulse {
+  from { transform: scale(1.32); }
+  to   { transform: scale(1); }
+}
+
+/* lluvia */
+.au-rain {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 900;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.au-drop {
+  position: absolute;
+
+  top: 0;
+
+  color: var(--ink);
+
+  animation: au-fall var(--dur) linear forwards;
+}
+
+[data-theme="dark"] .au-drop {
+  color: var(--fg);
+}
+
+.au-drop svg {
+  display: block;
+
+  height: var(--size);
+  width: auto;
+
+  overflow: visible;
+
+  animation: au-sway calc(var(--dur) / 2.5) ease-in-out infinite alternate;
+}
+
+.au-drop .ast {
+  stroke: var(--c);
+}
+
+@keyframes au-fall {
+  from { transform: translate3d(0, -12vh, 0) rotate(var(--r0)); }
+  to   { transform: translate3d(var(--drift), 112vh, 0) rotate(var(--r1)); }
+}
+
+@keyframes au-sway {
+  from { translate: -14px 0; }
+  to   { translate: 14px 0; }
+}
+
+/* cada submarca cae con su propia animación */
+.au-drop[data-k="au"] .ast    { animation: au-tic-loop 1.1s cubic-bezier(.34, 1.56, .64, 1) infinite; }
+.au-drop[data-k="films"] .ast { animation: au-reel 1.6s cubic-bezier(.1, .75, .2, 1) infinite; }
+.au-drop[data-k="dev"] .ast   { animation: au-burst-loop 1.5s cubic-bezier(.34, 1.56, .64, 1) infinite; }
+.au-drop[data-k="dev"] .caret { animation: au-blink 1.06s steps(1) infinite; fill: #C2417F; }
+.au-drop[data-k="music"] .ast line {
+  animation: au-arm-loop 1.8s cubic-bezier(.34, 1.56, .64, 1) infinite;
+  animation-delay: calc(var(--i) * .1s);
+}
+
+@keyframes au-tic-loop {
+  0%, 45% { transform: rotate(0deg); }
+  100%    { transform: rotate(45deg); }   /* 45° = misma forma: el bucle no se nota */
+}
+
+@keyframes au-burst-loop {
+  0%        { transform: scale(0) rotate(-45deg); }
+  35%, 100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes au-arm-loop {
+  0%       { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  12%, 80% { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  100%     { stroke-dasharray: 1; stroke-dashoffset: 1; }
 }
